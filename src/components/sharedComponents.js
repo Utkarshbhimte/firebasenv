@@ -21,15 +21,30 @@ export const Button = styled.button`
   min-width: 12rem;
   padding: 0.5rem 0;
   border-radius: 0.6rem;
-  letter-spacing: 3px;
   text-transform: uppercase;
   font-size: 14px;
   cursor: pointer;
   transition: all 0.3s ease-in-out;
   transform-origin: right;
+  will-change: opacity;
+  line-height: 2rem;
+  border-radius: 17px;
+  box-shadow: 10px 10px 20px #b1b1b1, -10px -10px 20px #ffffff;
 
-  &:hover,
-  &:focus {
-    background-color: #ff7d7c;
+  &:not(:disabled) {
+    &:active {
+      box-shadow: inset 5px 5px 23px #d51918, inset -5px -5px 23px #ff2320;
+    }
+    &:hover,
+    &:focus {
+      background: #e31617;
+    }
+  }
+
+  &:disabled {
+    filter: grayscale(1);
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: all !important;
   }
 `

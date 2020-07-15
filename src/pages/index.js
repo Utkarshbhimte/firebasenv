@@ -21,13 +21,23 @@ const HIWContainer = styled(Container)`
 
 const IndexPage = () => {
   const [data, setData] = useState(null)
+  const [showForm, setShowForm] = useState(true)
+
+  const submitData = submitData => {
+    setData(submitData)
+    setShowForm(false)
+  }
+
+  const handleResetClick = () => {
+    setShowForm(true)
+  }
   return (
     <Layout>
-      {data ? (
-        <FirebaseCard setData={setData} data={data} />
+      {!showForm && !!data ? (
+        <FirebaseCard onResetClick={handleResetClick} data={data} />
       ) : (
         <>
-          <InputFormBox setData={setData} />
+          <InputFormBox data={data} submitData={submitData} />
           <HIWContainer>
             <h2>How it works</h2>
             <ul>

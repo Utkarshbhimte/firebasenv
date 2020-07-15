@@ -1,12 +1,14 @@
-import React, { useState } from "react"
+import React, { useState, useRef } from "react"
 import styled from "styled-components"
-import theme from "./theme"
+import ContentEditable from "react-contenteditable"
 import { Card, Container, Button } from "./sharedComponents"
 
 // icons
 import reactIcon from "../images/react.svg"
 import vueIcon from "../images/vue.png"
 import gatsbyIcon from "../images/gatsby.png"
+import json5 from "json5"
+import theme from "./theme"
 
 const SectionContainer = styled(Container)`
   margin-bottom: 4rem;
@@ -24,10 +26,19 @@ const SectionContainer = styled(Container)`
     grid-auto-flow: column;
     grid-auto-columns: 2.5rem;
 
-    button {
+    a {
       outline: none;
       border: none;
+      will-change: opacity;
       background: none;
+      filter: grayscale(1);
+      opacity: 0.5;
+      transition: all 0.3s ease-in-out;
+
+      &.active {
+        filter: grayscale(0);
+        opacity: 1;
+      }
     }
 
     img {
@@ -45,7 +56,6 @@ const FormContainer = styled(Card)`
   width: 80vw;
   margin: 2rem auto 0;
   position: relative;
-  overflow: hidden;
   color: ${theme.textPrimary};
 
   pre,
@@ -55,14 +65,21 @@ const FormContainer = styled(Card)`
     width: 100%;
   }
 
+  .json-input {
+    margin-top: 0.5rem !important;
+    white-space: pre;
+    min-height: 10rem;
+  }
+
+  .label-text {
+    font-weight: bold;
+    font-size: 1rem;
+  }
+
   label {
     display: block;
     position: relative;
-    margin-bottom: 1rem;
-
-    > span {
-      font-size: 0.8rem;
-    }
+    margin: 2rem 0 1rem;
 
     &:after,
     &:before {
@@ -108,97 +125,147 @@ const FormContainer = styled(Card)`
   }
 `
 
-export const InputFormBox = ({ setData }) => {
+const defaultValue = {
+  appId: "akjhfjasdhfkajfbsndosldhfjnoalsjfasd",
+}
+
+export const InputFormBox = ({ data, submitData }) => {
   const [error, setError] = useState(null)
+  const [jsonInputValue, setJsonInputValue] = useState(
+    json5.stringify((data && data.json) || defaultValue, null, 4)
+  )
+  const [parsedContent, setParsedContent] = useState(
+    (data && data.json) || defaultValue
+  )
+  const [activePrefix, setActivePrefix] = useState(
+    (data && data.prefix) || "REACT_APP"
+  )
+  const isPrefixInvalid = !activePrefix || !activePrefix.length
 
-  const handleSubmit = event => {
-    setError(null)
+  const jsonInputRef = useRef()
+
+  const updatePrefix = prefix => {
+    setActivePrefix(prefix)
+  }
+
+  const handleJsonInputChange = event => {
     try {
-      event.preventDefault()
-      const JsonInputDOM = document.querySelector(".json-input")
-      let rawJSON = JsonInputDOM && JsonInputDOM.innerText
+      let innerHtmlContent = event.target.value
 
-      if (!rawJSON || !rawJSON.length) {
-        throw new Error("The JSON is not valid")
+      if (!innerHtmlContent) {
+        return
       }
 
-      let sanitizedJSON = rawJSON
-        // Replace all the space in between
-        .replace(/\s/g, "")
+      setError(false)
 
-        // Replace ":" with "@colon@" if it's between double-quotes
-        .replace(/:\s*"([^"]*)"/g, function(match, p1) {
-          return ': "' + p1.replace(/:/g, "@colon@") + '"'
-        })
+      setJsonInputValue(innerHtmlContent)
 
-        // Replace ":" with "@colon@" if it's between single-quotes
-        .replace(/:\s*'([^']*)'/g, function(match, p1) {
-          return ': "' + p1.replace(/:/g, "@colon@") + '"'
-        })
+      const el = document.createElement("div")
+      el.innerHTML = innerHtmlContent
 
-        // Add double-quotes around any tokens before the remaining ":"
-        .replace(/(['"])?([a-z0-9A-Z_]+)(['"])?\s*:/g, '"$2": ')
-
-        // Turn "@colon@" back into ":"
-        .replace(/@colon@/g, ":")
+      const textValue = el.innerText
 
       try {
-        sanitizedJSON = JSON.parse(sanitizedJSON)
-      } catch (error) {
-        console.error(error)
-        throw new Error("The JSON is not valid")
+        const parsed = json5.parse(textValue)
+        setParsedContent(parsed)
+      } catch {
+        setError("We are unable to parse this JSON")
       }
-
-      const PrefixInputDOM = document.querySelector(".prefix-input")
-      const selectedPrefix = (PrefixInputDOM && PrefixInputDOM.value) || ""
-      setData({ json: sanitizedJSON, prefix: selectedPrefix })
     } catch (error) {
       console.error(error)
-      setError(error.message)
+      setError("Something expected happened")
     }
   }
 
-  const updatePrefix = prefix => {
-    document.querySelector(".prefix-input").value = prefix
+  const handleSubmit = event => {
+    event.preventDefault()
+
+    if (error) {
+      return
+    }
+
+    if (isPrefixInvalid) {
+      return
+    }
+
+    if (!parsedContent || !Object.keys(parsedContent).length) {
+      setError("The object is empty")
+      return
+    }
+    submitData({
+      json: parsedContent,
+      prefix: activePrefix,
+    })
   }
+
+  const handleJsonInputKeyDown = e => {
+    if (e.keyCode == 9) {
+      e.persist()
+      e.preventDefault()
+      document.execCommand("insertHTML", false, "&#009")
+    }
+  }
+
+  const handlePrefixChange = event => updatePrefix(event.target.value)
+
   return (
     <SectionContainer>
       <form onSubmit={handleSubmit}>
         <FormContainer>
-          <label>
-            <span>Firebase Config JSON</span>
-            <pre contentEditable className="json-input"></pre>
-          </label>
+          <div>
+            <span className="label-text heading">Paste your JSON here</span>
+            <ContentEditable
+              html={jsonInputValue}
+              ref={jsonInputRef}
+              className="json-input"
+              contentEditable
+              onChange={handleJsonInputChange}
+              onKeyDown={handleJsonInputKeyDown}
+              tagName="pre" // Use a custom HTML tag (uses a div by default)
+            />
+          </div>
           {error && <small className="error-text">{error}</small>}
 
           <label>
-            <span>Prefix</span>
+            <span className="label-text heading">Prefix</span>
             <input
               className="prefix-input"
               type="text"
+              value={activePrefix}
+              onChange={handlePrefixChange}
               defaultValue="REACT_APP"
             />
           </label>
         </FormContainer>
         <div className="button-wrap">
           <div className="prefix-options">
-            <a onClick={() => updatePrefix("REACT_APP")}>
+            <a
+              className={activePrefix === "REACT_APP" ? "active" : ""}
+              onClick={() => updatePrefix("REACT_APP")}
+            >
               <img src={reactIcon} alt="react" />
             </a>
-            <a onClick={() => updatePrefix("VUE_APP")}>
+            <a
+              className={activePrefix === "VUE_APP" ? "active" : ""}
+              onClick={() => updatePrefix("VUE_APP")}
+            >
               <img src={vueIcon} alt="vue" />
             </a>
-            <a onClick={() => updatePrefix("GATSBY_APP")}>
+            <a
+              className={activePrefix === "GATSBY_APP" ? "active" : ""}
+              onClick={() => updatePrefix("GATSBY_APP")}
+            >
               <img src={gatsbyIcon} alt="gatsby" />
             </a>
           </div>
           <Button
+            disabled={!!error || !!isPrefixInvalid}
             style={{
               float: "right",
             }}
             type="submit"
           >
-            Submit
+            Generate
           </Button>
         </div>
       </form>

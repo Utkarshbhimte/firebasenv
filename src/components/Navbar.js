@@ -13,5 +13,5 @@ const Container = styled.div`
 `
 
 export const Navbar = () => {
-  return <Container>FirebasEnv</Container>
+  return <Container className="heading">FirebasEnv</Container>
 }

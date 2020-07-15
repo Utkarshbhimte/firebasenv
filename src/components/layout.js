@@ -16,8 +16,10 @@ const Layout = ({ children }) => {
       <Navbar />
       <main>{children}</main>
       <footer>
-        © {new Date().getFullYear()},{` `}
-        <a href="workofutkarsh.com">WorkOfUtkarsh</a>
+        made with ♥️ by{" "}
+        <a target="_blank" href="https://workofutkarsh.com">
+          Utkarsh Bhimte
+        </a>
       </footer>
     </LayoutContainer>
   )
