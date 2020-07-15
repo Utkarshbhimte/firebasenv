@@ -9,6 +9,7 @@ import "../components/layout.css"
 
 import screenshot from "../images/config-screenshot.png"
 import { Container } from "../components/sharedComponents"
+import SEO from "../components/seo"
 
 const HIWContainer = styled(Container)`
   .config-screenshot {
@@ -33,6 +34,7 @@ const IndexPage = () => {
   }
   return (
     <Layout>
+      <SEO />
       {!showForm && !!data ? (
         <FirebaseCard onResetClick={handleResetClick} data={data} />
       ) : (
