@@ -39,12 +39,17 @@ const Layout = ({ children }) => {
       <footer>
         <span>
           made with ♥️ by{" "}
-          <a target="_blank" href="https://workofutkarsh.com">
+          <a
+            target="_blank"
+            rel="noopener noreferrer"
+            href="https://workofutkarsh.com"
+          >
             Utkarsh Bhimte
           </a>
         </span>
         <a
           target="_blank"
+          rel="noopener noreferrer"
           href="https://github.com/Utkarshbhimte/firebasenv"
           className="github-button"
         >
