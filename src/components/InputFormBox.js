@@ -73,7 +73,7 @@ const FormContainer = styled(Card)`
 
   .label-text {
     font-weight: bold;
-    font-size: 1rem;
+    font-size: 0.8rem;
   }
 
   label {

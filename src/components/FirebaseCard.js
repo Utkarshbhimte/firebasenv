@@ -18,6 +18,9 @@ const SectionContainer = styled(Container)`
     align-items: center;
     font-size: 0.8rem;
     justify-content: space-between;
+    .card-heading {
+      font-weight: bold;
+    }
   }
 
   pre {
@@ -28,6 +31,7 @@ const SectionContainer = styled(Container)`
     display: flex;
     align-items: center;
     font-weight: bold;
+    cursor: pointer;
     img {
       height: 1rem;
       width: 1rem;
@@ -42,7 +46,7 @@ const CardHeader = ({ children, value }) => {
   const [hasCopied, setHasCopied] = useState(false)
   return (
     <div className="card-header">
-      {children}
+      <div className="card-heading">{children}</div>
 
       <CopyToClipboard text={value}>
         <a
@@ -77,13 +81,11 @@ export const FirebaseCard = ({ data, onResetClick }) => {
   return (
     <SectionContainer>
       <div>
-        <CardHeader value={envContent}>
-          <span>Copy this to your .env file</span>
-        </CardHeader>
+        <CardHeader value={envContent}>Copy this to your .env file</CardHeader>
         <pre>{envContent}</pre>
 
         <CardHeader value={codeContent}>
-          <span>Copy this to your firebaseConfig.js</span>
+          Copy this to your firebaseConfig.js
         </CardHeader>
         <pre>{codeContent}</pre>
       </div>
